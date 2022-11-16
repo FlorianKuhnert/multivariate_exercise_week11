@@ -379,9 +379,75 @@ on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="uri">http:
 generated that includes both content as well as the output of any
 embedded R code chunks within the document. You can embed an R code
 chunk like this:</p>
-<pre class="r"><code>#change
+<pre class="r"><code>flight &lt;- data.frame(CSFI = c(2,5,5,6,6,7,8,9,NA,NA), 
+                  TFI = c(1,1,2,3,3,4,5,7,7,8)) #Create the data as a data frame
+CSFI &lt;- c(2,5,5,6,6,7,8,9) #Create a vector for CSFI 
+TFI &lt;- c(1,1,2,3,3,4,5,7,7,8) #Create a vector for TFI
+#This is done to be able to test that the function below can be used with both a data frame
+#with missing values as well as with vectors, to ensure optimal usability.
+CSFI &lt;- c(2,5,5,6,6,7,8,9) #Create a vector for CSFI 
+TFI &lt;- c(1,1,2,3,3,4,5,7,7,8)
 
-#Meepies</code></pre>
+##Part 1
+
+
+MyTtest &lt;- function (x, y) {
+  #This function performs a student t-test.
+  #Input:
+  #The required input are two numeric variables x and y either in the form
+  #of columns in a data frame, columns in a matrix or vectors. NAs are omitted
+  #Output(as list):
+  #   - The mean values of the variables
+  #   - The t-statistic values
+  #   - The associated p-values
+  
+  n1 &lt;- length(x[!is.na(x)]) #Define number of observsation in x
+  n2 &lt;- length(y[!is.na(y)]) #Define number of observsation in y
+  y1 &lt;- mean(x[!is.na(x)]) #Define sample mean of x
+  y2 &lt;- mean(y[!is.na(y)]) #Define sample mean of y
+  var_x &lt;- var(x[!is.na(x)]) #Define sample variance of x
+  var_y &lt;- var(y[!is.na(y)]) #Define sample variance of x
+  s &lt;- sqrt(((n1-1)*var_x+(n2-1)*var_y)/
+              ((n1-1)+(n2-1))) #Calculate square root of pooled estimate of 
+                               #the variance
+  df = n1+n2-2 #Define the degrees of freedom
+  t_value = (y1-y2)/(s*(sqrt(1/n1+1/n2))) #Calculate the t-value
+  p_value = 2*pt(q=t_value, df=df, lower.tail = F) #Calculate the two-sided p-value
+  result = list(mean_x = y1, mean_y = y2, t_value = round(t_value,4), df = df, 
+                p_value = round(p_value,4)) #Define the output of the function as the means
+                                   #of x and y, the t-value, df and two-sided p-value
+  return(result) #Return list of results
+}
+
+
+#Compare results of function t.test and MyTtest function above
+t.test(flight$CSFI,flight$TFI)</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  flight$CSFI and flight$TFI
+## t = 1.7161, df = 15.947, p-value = 0.1055
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -0.4477771  4.2477771
+## sample estimates:
+## mean of x mean of y 
+##       6.0       4.1</code></pre>
+<pre class="r"><code>MyTtest(flight$CSFI,flight$TFI)</code></pre>
+<pre><code>## $mean_x
+## [1] 6
+## 
+## $mean_y
+## [1] 4.1
+## 
+## $t_value
+## [1] 1.6805
+## 
+## $df
+## [1] 16
+## 
+## $p_value
+## [1] 0.1123</code></pre>
 </div>
 
 
